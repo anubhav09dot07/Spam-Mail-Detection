@@ -66,6 +66,50 @@ Open your browser at:
 http://127.0.0.1:5000
 ```
 
+## Deploy Live (Render)
+
+This repository now includes `render.yaml` for simple deployment.
+
+1. Push your latest code to GitHub.
+2. Sign in to Render and choose New + > Blueprint.
+3. Connect your GitHub account and select this repository.
+4. Render will detect `render.yaml` and create the web service automatically.
+5. Wait for the build to complete, then open the generated `.onrender.com` URL.
+
+If you prefer manual setup on Render instead of Blueprint:
+
+- Build Command: `pip install -r requirements.txt`
+- Start Command: `gunicorn app:app`
+
+## Deploy Live (Hugging Face Spaces)
+
+This project includes a `Dockerfile`, so deploy it as a Docker Space.
+
+1. Create a new Space on Hugging Face.
+2. Choose SDK: Docker.
+3. Keep Space visibility Public or Private as you prefer.
+4. Create the Space.
+
+Then push your code to the Space repo:
+
+```bash
+git add Dockerfile .dockerignore README.md
+git commit -m "chore: add Hugging Face Spaces deployment"
+git push
+
+git remote add hf https://huggingface.co/spaces/<your-username>/<your-space-name>
+git push hf main
+```
+
+If the `hf` remote already exists:
+
+```bash
+git remote set-url hf https://huggingface.co/spaces/<your-username>/<your-space-name>
+git push hf main
+```
+
+After the push, Hugging Face will build the Docker image and give you a live URL.
+
 ## API Endpoints
 
 ### POST `/predict`
