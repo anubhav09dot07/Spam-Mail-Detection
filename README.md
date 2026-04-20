@@ -1,1 +1,1 @@
-# Soam-Mail-Detection
+# Spam-Mail-Detection
