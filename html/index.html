@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MailDrop | Spam Detection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="../static/style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div>
+          <div class="brand">MailDrop</div>
+          <p class="brand-copy">A clean dashboard for spam vs ham detection.</p>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a class="nav-item active" href="#scanner">Scanner</a>
+          <a class="nav-item" href="#metrics">Model Metrics</a>
+          <a class="nav-item" href="#insights">Dataset Insights</a>
+        </nav>
+
+        <div class="sidebar-note">
+          <div class="note-label">Tip</div>
+          <p>Drag a .txt file or paste an email body to classify it instantly.</p>
+        </div>
+      </aside>
+
+      <main class="dashboard">
+        <section class="hero-panel">
+          <header class="topbar">
+            <div>
+              <p class="eyebrow">Email intelligence</p>
+              <h1>Detect spam emails before they reach the inbox.</h1>
+              <p class="hero-copy">Paste a message, drop a file, or test a sample email and the model will classify it with a live confidence score.</p>
+            </div>
+            <div class="topbar-actions">
+              <div class="pill">Live model</div>
+              <div class="pill subtle">TF-IDF + Logistic Regression</div>
+            </div>
+          </header>
+
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <span class="hero-stat-label">Training source</span>
+              <strong>SMS Spam Collection</strong>
+              <p>Built from labeled ham and spam messages.</p>
+            </div>
+            <div class="hero-stat">
+              <span class="hero-stat-label">Fast inference</span>
+              <strong>Single-message prediction</strong>
+              <p>Get a result as soon as you press classify.</p>
+            </div>
+            <div class="hero-stat">
+              <span class="hero-stat-label">Output</span>
+              <strong>Spam / Ham + confidence</strong>
+              <p>Clear verdicts with a probability score.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="kpi-grid" id="insights">
+          <article class="kpi-card primary">
+            <span class="kpi-label">Detection result</span>
+            <strong id="resultText" class="kpi-value">Waiting for an email</strong>
+            <span id="confidenceText" class="kpi-meta">No prediction yet</span>
+          </article>
+          <article class="kpi-card">
+            <span class="kpi-label">Dataset size</span>
+            <strong id="datasetTotal" class="kpi-value">5,572</strong>
+            <span class="kpi-meta">Messages available for training</span>
+          </article>
+          <article class="kpi-card">
+            <span class="kpi-label">Test accuracy</span>
+            <strong id="metricAccuracy" class="kpi-value">--</strong>
+            <span class="kpi-meta">Model performance on the holdout set</span>
+          </article>
+          <article class="kpi-card">
+            <span class="kpi-label">Spam share</span>
+            <strong id="spamShare" class="kpi-value">--</strong>
+            <span class="kpi-meta">How much of the dataset is spam</span>
+          </article>
+        </section>
+
+        <section class="feature-strip" aria-label="How it works">
+          <article class="feature-card">
+            <span class="feature-step">1</span>
+            <h2>Paste or upload</h2>
+            <p>Drop a text file or paste an email body into the scanner.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-step">2</span>
+            <h2>Model analyzes text</h2>
+            <p>The TF-IDF pipeline scores the message against the trained classifier.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-step">3</span>
+            <h2>Review the verdict</h2>
+            <p>See the spam label, confidence score, and supporting dataset metrics.</p>
+          </article>
+        </section>
+
+        <section class="workspace-panel" id="scanner">
+          <div class="scanner-grid">
+            <div class="scanner-card">
+              <div id="dropZone" class="drop-zone">
+                <div class="drop-zone-inner">
+                  <h2>Drop mail here</h2>
+                  <p>Drag and drop a text email, or paste the content below.</p>
+                  <input id="fileInput" type="file" accept=".txt,.eml,.csv,.msg,text/plain" hidden />
+                  <button id="browseButton" class="secondary-button" type="button">Browse files</button>
+                </div>
+              </div>
+
+              <label class="input-label" for="emailInput">Email content</label>
+              <textarea id="emailInput" placeholder="Paste the email body here..."></textarea>
+
+              <div class="sample-row" aria-label="Sample messages">
+                <button class="sample-chip" type="button" data-sample="Congratulations, you have won a free vacation. Click the link now to claim your prize.">Spam sample</button>
+                <button class="sample-chip" type="button" data-sample="Hi team, the meeting is at 3 PM today. Please review the agenda before joining.">Ham sample</button>
+                <button class="sample-chip" type="button" data-sample="Urgent update: your account will be closed unless you confirm your password immediately.">Phishing sample</button>
+              </div>
+
+              <div class="actions">
+                <button id="predictButton" class="primary-button" type="button">Classify mail</button>
+                <button id="clearButton" class="ghost-button" type="button">Clear</button>
+              </div>
+
+              <p id="message" class="message"></p>
+            </div>
+
+            <div class="scanner-card result-card">
+              <div class="result-header">
+                <span class="kpi-label">Prediction details</span>
+                <span class="status-dot"></span>
+              </div>
+              <div class="result-panel">
+                <div class="result-text-wrap">
+                  <div id="resultTextLarge" class="result-text">Waiting for an email</div>
+                  <p id="confidenceLarge" class="confidence-text">No prediction yet</p>
+                </div>
+                <div class="result-chart-wrap">
+                  <canvas id="confidenceChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="charts-grid" id="metrics">
+          <article class="chart-card">
+            <div class="chart-head">
+              <h2>Class balance</h2>
+              <span>Dataset distribution</span>
+            </div>
+            <canvas id="balanceChart"></canvas>
+          </article>
+          <article class="chart-card">
+            <div class="chart-head">
+              <h2>Model metrics</h2>
+              <span>Holdout-set scores</span>
+            </div>
+            <canvas id="metricsChart"></canvas>
+          </article>
+          <article class="chart-card">
+            <div class="chart-head">
+              <h2>Average message length</h2>
+              <span>Words per email</span>
+            </div>
+            <canvas id="lengthChart"></canvas>
+          </article>
+          <article class="chart-card matrix-card">
+            <div class="chart-head">
+              <h2>Confusion matrix</h2>
+              <span>Ham vs spam predictions</span>
+            </div>
+            <div id="confusionMatrix" class="matrix-grid"></div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script src="../static/app.js"></script>
+  </body>
+</html>
